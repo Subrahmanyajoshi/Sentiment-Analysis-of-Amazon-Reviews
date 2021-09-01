@@ -54,7 +54,7 @@ class Trainer(object):
 
     def clean_up(self):
         """ Deletes temporary directories created while training"""
-        SystemOps.check_and_delete('all_images')
+        SystemOps.check_and_delete('train_text')
         SystemOps.check_and_delete('checkpoints')
         SystemOps.check_and_delete('trained_model')
         SystemOps.check_and_delete('train_logs.csv')
@@ -72,10 +72,10 @@ class Trainer(object):
 
         if self.bucket is not None:
             io_operator = CloudIO(input_dir=self.train_params.data_dir, bucket=self.bucket)
-            SystemOps.run_command(f"gsutil -m cp -r {os.path.join(self.train_params.data_dir, 'all_images.zip')} ./")
-            with zipfile.ZipFile('all_images.zip', 'r') as zip_ref:
-                zip_ref.extractall('./all_images')
-            SystemOps.check_and_delete('all_images.zip')
+            SystemOps.run_command(f"gsutil -m cp -r {os.path.join(self.train_params.data_dir, 'train_text.zip')} ./")
+            with zipfile.ZipFile('train_text.zip', 'r') as zip_ref:
+                zip_ref.extractall('./train_text')
+            SystemOps.check_and_delete('train_text.zip')
         else:
             io_operator = LocalIO(input_dir=self.train_params.data_dir)
 
@@ -86,13 +86,13 @@ class Trainer(object):
         train_generator = DataGenerator(image_filenames=X_train_files,
                                         labels=y_train,
                                         batch_size=self.train_params.batch_size,
-                                        dest_dir='./all_images/',
+                                        dest_dir='./train_text/',
                                         bucket=self.bucket,
                                         image_shape=eval(self.train_params.image_shape))
         validation_generator = DataGenerator(image_filenames=X_val_files,
                                              labels=y_val,
                                              batch_size=self.train_params.batch_size,
-                                             dest_dir='./all_images/',
+                                             dest_dir='./train_text/',
                                              bucket=self.bucket,
                                              image_shape=eval(self.train_params.image_shape))
 
