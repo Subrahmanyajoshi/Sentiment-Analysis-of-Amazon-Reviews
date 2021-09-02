@@ -15,28 +15,12 @@ class IO(abc.ABC):
     """ An abstract class which outlines the structure of Io classes. All classes which inherit from this class
     should implement all of the abstract methods """
 
-    # standard file names
-    X_TRAIN = 'X_train_filenames.npy'
-    Y_TRAIN = 'y_train.npy'
-    X_VAL = 'X_val_filenames.npy'
-    Y_VAL = 'y_val.npy'
-
-    def __init__(self, input_dir: str, bucket: Optional[Bucket] = None):
+    def __init__(self, bucket: Optional[Bucket] = None):
         """ Init method
         Args:
-            input_dir (str): Input directory where all data needed to train a model is located
             bucket (Optional[Bucket]): Google Cloud Storage bucket name
         """
-        self.X_train_filenames = os.path.join(input_dir, 'train', IO.X_TRAIN)
-        self.y_train = os.path.join(input_dir, 'train', IO.Y_TRAIN)
-        self.X_val_filenames = os.path.join(input_dir, 'val', IO.X_VAL)
-        self.y_val = os.path.join(input_dir, 'val', IO.Y_VAL)
         self.bucket = bucket
-
-    @abc.abstractmethod
-    def load(self):
-        """ This method does not require implementation inside abstract class"""
-        ...
 
     @abc.abstractmethod
     def write(self, src_path: str, dest_path: str):
@@ -47,20 +31,14 @@ class IO(abc.ABC):
 class LocalIO(IO):
     """ To perform IO operations in local file system"""
 
-    def __init__(self, input_dir: str):
+    def load(self):
+        pass
+
+    def __init__(self):
         """ Init method
         Args:
-            input_dir (str): Input directory where all data needed to train a model is located
         """
-        super(LocalIO, self).__init__(input_dir=input_dir)
-
-    def load(self):
-        """ Load numpy arrays which contain information about file names and labels"""
-        X_train_filenames = np.load(self.X_train_filenames)
-        y_train = np.load(self.y_train)
-        X_val_filenames = np.load(self.X_val_filenames)
-        y_val = np.load(self.y_val)
-        return X_train_filenames, y_train, X_val_filenames, y_val
+        super(LocalIO, self).__init__()
 
     def write(self, src_path: str, dest_path: str):
         SystemOps.move(src_path=src_path, dst_path=dest_path)
@@ -69,13 +47,12 @@ class LocalIO(IO):
 class CloudIO(IO):
     """ To perform IO operations from/to Google Cloud Storage"""
 
-    def __init__(self, input_dir: str, bucket: Bucket):
+    def __init__(self, bucket: Bucket):
         """ Init method
         Args:
-            input_dir (str): GCS directory where all data needed to train a model is located
             bucket (Optional[Bucket]): Google Cloud Storage bucket name
         """
-        super(CloudIO, self).__init__(input_dir=input_dir, bucket=bucket)
+        super(CloudIO, self).__init__(bucket=bucket)
 
     @staticmethod
     def load_npy(file_name: str):
@@ -118,14 +95,6 @@ class CloudIO(IO):
             # Create path to file system inside GCS
             remote_path = os.path.join(gcs_path, local_file)
             self.upload_file_to_gcs(src_path=l_file, dest_path=remote_path)
-
-    def load(self):
-        """ Creates filenames and labels numpy arrays"""
-        X_train_filenames = CloudIO.load_npy(file_name=self.X_train_filenames)
-        y_train = CloudIO.load_npy(file_name=self.y_train)
-        X_val_filenames = CloudIO.load_npy(file_name=self.X_val_filenames)
-        y_val = CloudIO.load_npy(file_name=self.y_val)
-        return X_train_filenames, y_train, X_val_filenames, y_val
 
     def write(self, src_path: str, dest_path: str, use_system_cmd: bool = True):
         """ Writes files/folders to Google Cloud Storage

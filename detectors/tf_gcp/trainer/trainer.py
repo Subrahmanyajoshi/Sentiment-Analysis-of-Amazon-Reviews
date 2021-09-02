@@ -1,9 +1,16 @@
 import importlib
 import os
 import zipfile
+from typing import Tuple
+
+import pandas as pd
+import numpy as np
 
 from datetime import datetime
 from argparse import Namespace
+
+from tensorflow.keras.preprocessing import sequence
+from tensorflow.keras.preprocessing.text import Tokenizer
 
 from detectors.common import BucketOps, SystemOps
 from detectors.tf_gcp.trainer.data_ops.data_generator import DataGenerator
@@ -13,6 +20,8 @@ from detectors.tf_gcp.trainer.models.models import CNNModel, VGG19Model
 
 class Trainer(object):
     MODEL_NAME = 'Amazon_review_analysis.hdf5'
+    TOP_K = 20000
+    MAX_SEQUENCE_LENGTH = 110
 
     def __init__(self, config: dict):
         """ Init method
@@ -26,6 +35,8 @@ class Trainer(object):
         self.csv_path = None
         self.callbacks = self.init_callbacks()
         self.bucket = None
+        self.tokenizer = Tokenizer(num_words=Trainer.TOP_K)
+
         bucket_name = 'unk'
         if self.train_params.data_dir.startswith('gs://'):
             bucket_name = self.train_params.data_dir.split('gs://')[1].split('/')[0]
@@ -60,6 +71,33 @@ class Trainer(object):
         SystemOps.check_and_delete('train_logs.csv')
         SystemOps.check_and_delete('config.yaml')
 
+    def load_data(self):
+        SystemOps.run_command(f"gsutil -m cp -r {os.path.join(self.train_params.data_dir, 'train_text.zip')} ./")
+        with zipfile.ZipFile('train_text.zip', 'r') as zip_ref:
+            zip_ref.extractall('./train_text')
+        SystemOps.check_and_delete('train_text.zip')
+
+    def preprocess(self) -> Tuple:
+        train_df = pd.read_csv(os.path.join('train_text', 'train_text.csv.gz'))
+        val_df = pd.read_csv(os.path.join('train_text', 'val_text.csv.gz'))
+        lines = list(train_df['input']) + list(val_df['input'])
+
+        self.tokenizer.fit_on_texts(lines)
+        X_train = self.tokenizer.texts_to_sequences(list(train_df['input']))
+        X_train = sequence.pad_sequences(X_train, maxlen=Trainer.MAX_SEQUENCE_LENGTH)
+        y_train = np.array(train_df['labels'])
+
+        X_val = self.tokenizer.texts_to_sequences(list(val_df['input']))
+        X_val = sequence.pad_sequences(X_val, maxlen=Trainer.MAX_SEQUENCE_LENGTH)
+        y_val = np.array(val_df['labels'])
+
+        with open(os.path.join('parser_output', 'word_index.txt'), 'w') as fstream:
+            for word, index in self.tokenizer.word_index.items():
+                if index < Trainer.TOP_K:  # only save mappings for TOP_K words
+                    fstream.write("{}:{}\n".format(word, index))
+
+        return X_train, y_train, X_val, y_val
+
     def train(self):
         if self.model_params.model == 'CNN':
             Model = CNNModel(img_shape=(None,) + eval(self.train_params.image_shape)).build(self.model_params)
@@ -71,30 +109,27 @@ class Trainer(object):
         Model.summary()
 
         if self.bucket is not None:
-            io_operator = CloudIO(input_dir=self.train_params.data_dir, bucket=self.bucket)
-            SystemOps.run_command(f"gsutil -m cp -r {os.path.join(self.train_params.data_dir, 'train_text.zip')} ./")
-            with zipfile.ZipFile('train_text.zip', 'r') as zip_ref:
-                zip_ref.extractall('./train_text')
-            SystemOps.check_and_delete('train_text.zip')
+            io_operator = CloudIO(bucket=self.bucket)
+            self.load_data()
         else:
-            io_operator = LocalIO(input_dir=self.train_params.data_dir)
+            io_operator = LocalIO()
+
+        SystemOps.create_dir('parser_output')
+        X_train, y_train, X_val, y_val = self.preprocess()
 
         SystemOps.check_and_delete('checkpoints')
         SystemOps.create_dir('checkpoints')
 
-        X_train_files, y_train, X_val_files, y_val = io_operator.load()
-        train_generator = DataGenerator(image_filenames=X_train_files,
+        train_generator = DataGenerator(input_text=X_train,
                                         labels=y_train,
                                         batch_size=self.train_params.batch_size,
-                                        dest_dir='./train_text/',
                                         bucket=self.bucket,
-                                        image_shape=eval(self.train_params.image_shape))
-        validation_generator = DataGenerator(image_filenames=X_val_files,
+                                        num_features=self.tokenizer.word_index)
+        validation_generator = DataGenerator(input_text=X_val,
                                              labels=y_val,
                                              batch_size=self.train_params.batch_size,
-                                             dest_dir='./train_text/',
                                              bucket=self.bucket,
-                                             image_shape=eval(self.train_params.image_shape))
+                                             num_features=self.tokenizer.word_index)
 
         history = Model.fit(
             train_generator,
@@ -115,5 +150,6 @@ class Trainer(object):
 
         # send saved model to 'trained_model' directory
         io_operator.write('trained_model', self.train_params.output_dir)
+        io_operator.write('parser_output', self.train_params.output_dir)
         io_operator.write('./checkpoints/*', self.cp_path)
         io_operator.write('train_logs.csv', self.csv_path)
