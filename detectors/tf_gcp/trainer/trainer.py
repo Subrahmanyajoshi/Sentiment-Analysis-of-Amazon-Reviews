@@ -19,7 +19,7 @@ from detectors.tf_gcp.trainer.models.models import CNNModel, VGG19Model
 
 
 class Trainer(object):
-    MODEL_NAME = 'Amazon_review_analysis.hdf5'
+    MODEL_NAME = 'Amazon_Reviews_Analysis.hdf5'
     TOP_K = 20000
     MAX_SEQUENCE_LENGTH = 110
 

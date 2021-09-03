@@ -4,7 +4,7 @@ train_params:
   num_epochs: 10
   steps_per_epoch: 163
   data_dir: 'gs://text-analysis-323506/train_data/'
-  output_dir: 'gs://text-analysis-323506/train_results'
+  output_dir: 'gs://text-analysis-323506/train_results/'
   use_multiprocessing: True
   # number of workers to use if multiprocessing is enabled
   workers: 6
@@ -37,7 +37,6 @@ train_params:
       separator: ','
       append: False
 
-# Two types of models are available, CNN built from scratch and VGG19 using transfer learning
 model_params:
   model: 'CNN'
   optimizer: 'adam'
@@ -45,5 +44,5 @@ model_params:
   metrics: ["accuracy"]
 
 predict_params:
-  model_path: 'gs://text-analysis-323506/train_results/trained_model/2021_08_01-10:07:06/CNN_amazon_review_analysis.hdf5'
-  data_path: 'gs://text-analysis-323506/test_images/malignant'
+  model_path: 'gs://text-analysis-323506/train_results/trained_model/2021_08_01-10:07:06/CNN_Amazon_Reviews_Analysis.hdf5'
+  data_path: 'gs://text-analysis-323506/test_images'
