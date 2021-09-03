@@ -99,8 +99,10 @@ class Trainer(object):
         return X_train, y_train, X_val, y_val
 
     def train(self):
+
+        num_features = min(len(self.tokenizer.word_index)+1, Trainer.TOP_K)
         if self.model_params.model == 'CNN':
-            Model = CNNModel(img_shape=(None,) + eval(self.train_params.image_shape)).build(self.model_params)
+            Model = CNNModel(num_features).build(self.model_params)
         elif self.model_params.model == 'VGG19':
             Model = VGG19Model(eval(self.train_params.image_shape)).build(self.model_params)
         else:
