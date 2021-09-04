@@ -1,8 +1,8 @@
 # NOTE: while mentioning Google cloud storage paths, mention full path starting from 'gs://'
 train_params:
   batch_size: 128
-  num_epochs: 10
-  steps_per_epoch: 11950
+  num_epochs: 3
+  steps_per_epoch: 20
   data_dir: 'gs://text-analysis-323506/train_data/'
   output_dir: 'gs://text-analysis-323506/train_results/'
   use_multiprocessing: True
@@ -42,6 +42,7 @@ model_params:
   optimizer: 'adam'
   loss: "binary_crossentropy"
   metrics: ["accuracy"]
+  embedding_dim: 200
 
 predict_params:
   model_path: 'gs://text-analysis-323506/train_results/trained_model/2021_08_01-10:07:06/CNN_Amazon_Reviews_Analysis.hdf5'

@@ -63,44 +63,55 @@ class Trainer(object):
             callbacks.append(obj(**self.train_params.callbacks[cb]))
         return callbacks
 
-    def clean_up(self):
+    @staticmethod
+    def clean_up():
         """ Deletes temporary directories created while training"""
-        SystemOps.check_and_delete('train_text')
+
+        print(f"[Trainer::cleanup] Cleaning up...")
+        SystemOps.run_command('rm *.csv.gz')
         SystemOps.check_and_delete('checkpoints')
         SystemOps.check_and_delete('trained_model')
+        SystemOps.check_and_delete('parser_output')
         SystemOps.check_and_delete('train_logs.csv')
         SystemOps.check_and_delete('config.yaml')
 
     def load_data(self):
-        SystemOps.run_command(f"gsutil -m cp -r {os.path.join(self.train_params.data_dir, 'train_text.zip')} ./")
-        with zipfile.ZipFile('train_text.zip', 'r') as zip_ref:
-            zip_ref.extractall('./train_text')
-        SystemOps.check_and_delete('train_text.zip')
+        SystemOps.run_command(f"gsutil -m cp -r {os.path.join(self.train_params.data_dir, 'train_val.zip')} ./")
+        with zipfile.ZipFile('train_val.zip', 'r') as zip_ref:
+            zip_ref.extractall('./')
+        SystemOps.check_and_delete('train_val.zip')
 
     def preprocess(self) -> Tuple:
-        train_df = pd.read_csv(os.path.join('train_text', 'train_text.csv.gz'))
-        val_df = pd.read_csv(os.path.join('train_text', 'val_text.csv.gz'))
+        train_df = pd.read_csv('train_text.csv.gz')
+        val_df = pd.read_csv('val_text.csv.gz')
         lines = list(train_df['input']) + list(val_df['input'])
 
+        print("[Trainer::preprocess] Fitting tokenizer on texts...")
         self.tokenizer.fit_on_texts(lines)
-        X_train = self.tokenizer.texts_to_sequences(list(train_df['input']))
-        X_train = sequence.pad_sequences(X_train, maxlen=Trainer.MAX_SEQUENCE_LENGTH)
-        y_train = np.array(train_df['labels'])
+        print(f"[Trainer::preprocess] Size of word index: {len(self.tokenizer.word_index)}")
 
+        print("[Trainer::preprocess] Converting texts to sequences...")
+        X_train = self.tokenizer.texts_to_sequences(list(train_df['input']))
         X_val = self.tokenizer.texts_to_sequences(list(val_df['input']))
+
+        print("[Trainer::preprocess] Padding sequences so that they have the same length...")
+        X_train = sequence.pad_sequences(X_train, maxlen=Trainer.MAX_SEQUENCE_LENGTH)
         X_val = sequence.pad_sequences(X_val, maxlen=Trainer.MAX_SEQUENCE_LENGTH)
+
+        y_train = np.array(train_df['labels'])
         y_val = np.array(val_df['labels'])
 
         with open(os.path.join('parser_output', 'word_index.txt'), 'w') as fstream:
             for word, index in self.tokenizer.word_index.items():
                 if index < Trainer.TOP_K:  # only save mappings for TOP_K words
                     fstream.write("{}:{}\n".format(word, index))
+        print("[Trainer::preprocess] Dumped word index to word_index.txt")
 
         return X_train, y_train, X_val, y_val
 
     def train(self):
 
-        num_features = min(len(self.tokenizer.word_index)+1, Trainer.TOP_K)
+        num_features = len(self.tokenizer.word_index) + 1
         if self.model_params.model == 'CNN':
             Model = CNNModel(num_features=num_features,
                              max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
@@ -109,18 +120,21 @@ class Trainer(object):
                                       f"Please choose between CNN and VGG19")
         Model.summary()
 
+        print(f"[Trainer::train] Built {self.model_params.model} model")
         if self.bucket is not None:
             io_operator = CloudIO(bucket=self.bucket)
             self.load_data()
         else:
             io_operator = LocalIO()
 
+        print("[Trainer::train] Loaded data")
         SystemOps.create_dir('parser_output')
         X_train, y_train, X_val, y_val = self.preprocess()
 
         SystemOps.check_and_delete('checkpoints')
         SystemOps.create_dir('checkpoints')
 
+        print("[Trainer::train] Creating train and validation generators...")
         train_generator = DataGenerator(input_text=X_train,
                                         labels=y_train,
                                         batch_size=self.train_params.batch_size,
@@ -132,6 +146,7 @@ class Trainer(object):
                                              bucket=self.bucket,
                                              num_features=self.tokenizer.word_index)
 
+        print("[Trainer::train] Started training")
         history = Model.fit(
             train_generator,
             validation_data=validation_generator,

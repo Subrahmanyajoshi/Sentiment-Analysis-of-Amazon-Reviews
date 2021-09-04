@@ -94,7 +94,7 @@ def main():
         print('Initialising training')
         trainer = Trainer(config=config)
         trainer.train()
-        trainer.clean_up()
+        Trainer.clean_up()
 
     if args.predict:
         print('Initialising testing')
@@ -104,4 +104,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except (KeyboardInterrupt, Exception):
+        print("An exception has caused the system to terminate")
+        Trainer.clean_up()
+        raise
