@@ -15,7 +15,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from detectors.common import BucketOps, SystemOps
 from detectors.tf_gcp.trainer.data_ops.data_generator import DataGenerator
 from detectors.tf_gcp.trainer.data_ops.io_ops import CloudIO, LocalIO
-from detectors.tf_gcp.trainer.models.models import CNNModel, VGG19Model
+from detectors.tf_gcp.trainer.models.models import CNNModel
 
 
 class Trainer(object):
@@ -102,9 +102,8 @@ class Trainer(object):
 
         num_features = min(len(self.tokenizer.word_index)+1, Trainer.TOP_K)
         if self.model_params.model == 'CNN':
-            Model = CNNModel(num_features).build(self.model_params)
-        elif self.model_params.model == 'VGG19':
-            Model = VGG19Model(eval(self.train_params.image_shape)).build(self.model_params)
+            Model = CNNModel(num_features=num_features,
+                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
         else:
             raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
                                       f"Please choose between CNN and VGG19")

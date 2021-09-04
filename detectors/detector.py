@@ -5,7 +5,7 @@ from argparse import Namespace
 from cv2 import imread, resize
 
 from detectors.common import YamlConfig, SystemOps
-from detectors.tf_gcp.trainer.models.models import CNNModel, VGG19Model
+from detectors.tf_gcp.trainer.models.models import CNNModel
 from detectors.tf_gcp.trainer.task import Trainer
 
 
@@ -23,10 +23,13 @@ class Predictor(object):
         self.img_channels = self.img_shape[2]
 
     def load_model(self):
+        # TODO
+        # find a way to get num features here. Setting it to 0 currently to avoid errors during training
+
+        num_features = 0
         if self.model_params.model == 'CNN':
-            model = CNNModel(img_shape=(None,) + self.img_shape).build(self.model_params)
-        elif self.model_params.model == 'VGG19':
-            model = VGG19Model(self.img_shape).build(self.model_params)
+            model = CNNModel(num_features=num_features,
+                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
         else:
             raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
                                       f"Please choose between CNN and VGG19")
