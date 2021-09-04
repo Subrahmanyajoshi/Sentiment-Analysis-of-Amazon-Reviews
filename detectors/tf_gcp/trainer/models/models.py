@@ -49,8 +49,7 @@ class CNNModel(Model):
         model.add(layers.Dropout(rate=0.2))
         model.add(layers.Dense(1, activation='sigmoid'))
 
-        optimizer = tf.keras.optimizers.Adam(lr=model_params.learning_rate)
-        model.compile(optimizer=optimizer,
+        model.compile(optimizer=model_params.optimizer,
                       loss=model_params.loss,
                       metrics=model_params.metrics)
         return model
