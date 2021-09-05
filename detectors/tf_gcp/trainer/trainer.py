@@ -166,5 +166,5 @@ class Trainer(object):
         # send saved model to 'trained_model' directory
         io_operator.write('trained_model', self.train_params.output_dir)
         io_operator.write('parser_output', self.train_params.output_dir)
-        io_operator.write('./checkpoints/*', self.cp_path)
-        io_operator.write('train_logs.csv', self.csv_path)
+        io_operator.write('checkpoints', self.train_params.output_dir)
+        io_operator.write('train_logs.csv', self.train_params.output_dir)
