@@ -34,5 +34,5 @@ class DataGenerator(keras.utils.Sequence):
         """
         batch_x = self.input[idx * self.batch_size: (idx + 1) * self.batch_size]
         batch_y = self.labels[idx * self.batch_size: (idx + 1) * self.batch_size]
-
+        batch_y = [[i] for i in batch_y]
         return np.array(batch_x), np.array(batch_y)

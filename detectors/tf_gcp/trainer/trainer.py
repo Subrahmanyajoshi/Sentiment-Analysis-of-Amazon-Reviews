@@ -110,17 +110,6 @@ class Trainer(object):
         return X_train, y_train, X_val, y_val
 
     def train(self):
-
-        num_features = len(self.tokenizer.word_index) + 1
-        if self.model_params.model == 'CNN':
-            Model = CNNModel(num_features=num_features,
-                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
-        else:
-            raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
-                                      f"Please choose between CNN and VGG19")
-        Model.summary()
-
-        print(f"[Trainer::train] Built {self.model_params.model} model")
         if self.bucket is not None:
             io_operator = CloudIO(bucket=self.bucket)
             self.load_data()
@@ -131,6 +120,16 @@ class Trainer(object):
         SystemOps.create_dir('parser_output')
         X_train, y_train, X_val, y_val = self.preprocess()
 
+        num_features = len(self.tokenizer.word_index) + 1
+        if self.model_params.model == 'CNN':
+            Model = CNNModel(num_features=num_features,
+                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
+        else:
+            raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
+                                      f"Please choose between CNN and VGG19")
+        Model.summary()
+        print(f"[Trainer::train] Built {self.model_params.model} model")
+        
         SystemOps.check_and_delete('checkpoints')
         SystemOps.create_dir('checkpoints')
 
