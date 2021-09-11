@@ -1,8 +1,8 @@
 # NOTE: while mentioning Google cloud storage paths, mention full path starting from 'gs://'
 train_params:
-  batch_size: 128
+  batch_size: 256
   num_epochs: 3
-  steps_per_epoch: 3000
+  steps_per_epoch: 1700
   data_dir: 'gs://text-analysis-323506/train_data/'
   output_dir: 'gs://text-analysis-323506/train_results/'
   use_multiprocessing: True
