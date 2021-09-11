@@ -1,5 +1,6 @@
 import importlib
 import os
+import pickle
 import zipfile
 from typing import Tuple
 
@@ -16,6 +17,14 @@ from detectors.common import BucketOps, SystemOps
 from detectors.tf_gcp.trainer.data_ops.data_generator import DataGenerator
 from detectors.tf_gcp.trainer.data_ops.io_ops import CloudIO, LocalIO
 from detectors.tf_gcp.trainer.models.models import CNNModel
+
+
+class TokenizerDetails(object):
+
+    def __init__(self, **kwargs):
+        self.tokenizer = kwargs.get('tokenizer', None)
+        self.top_k = kwargs.get('top_k', 20000)
+        self.max_sequence_length = kwargs.get('max_sequence_length', 110)
 
 
 class Trainer(object):
@@ -109,6 +118,12 @@ class Trainer(object):
 
         return X_train, y_train, X_val, y_val
 
+    def save_tokenizer(self):
+        tokenizer_pickle = Tokenizer(tokenizer=self.tokenizer, top_k=Trainer.TOP_K,
+                                     max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH)
+        with open('tokenizer.pickle', 'wb') as handle:
+            pickle.dump(tokenizer_pickle, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     def train(self):
         if self.bucket is not None:
             io_operator = CloudIO(bucket=self.bucket)
@@ -119,6 +134,7 @@ class Trainer(object):
         print("[Trainer::train] Loaded data")
         SystemOps.create_dir('parser_output')
         X_train, y_train, X_val, y_val = self.preprocess()
+        self.save_tokenizer()
 
         num_features = len(self.tokenizer.word_index) + 1
         if self.model_params.model == 'CNN':
