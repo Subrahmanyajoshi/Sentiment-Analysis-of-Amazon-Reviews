@@ -14,6 +14,7 @@ from tensorflow.keras.preprocessing import sequence
 from tensorflow.keras.preprocessing.text import Tokenizer
 
 from detectors.common import BucketOps, SystemOps
+from detectors.tf_gcp.trainer.callbacks import CallBacksCreator
 from detectors.tf_gcp.trainer.data_ops.data_generator import DataGenerator
 from detectors.tf_gcp.trainer.data_ops.io_ops import CloudIO, LocalIO
 from detectors.tf_gcp.trainer.models.models import CNNModel
@@ -42,7 +43,6 @@ class Trainer(object):
         self.model_params = Namespace(**config.get('model_params'))
         self.cp_path = None
         self.csv_path = None
-        self.callbacks = self.init_callbacks()
         self.bucket = None
         self.tokenizer = Tokenizer(num_words=Trainer.TOP_K)
 
@@ -53,24 +53,6 @@ class Trainer(object):
             bucket_name = self.train_params.data_dir.split('gs://')[1].split('/')[0]
         if bucket_name != 'unk':
             self.bucket = BucketOps.get_bucket(bucket_name)
-
-    def init_callbacks(self):
-        """ Creates callback objects mentioned in configurations """
-        callbacks = []
-        module = importlib.import_module('tensorflow.keras.callbacks')
-        for cb in self.train_params.callbacks:
-            if cb == 'ModelCheckpoint':
-                self.cp_path, filename = os.path.split(self.train_params.callbacks[cb]['filepath'])
-                self.train_params.callbacks[cb]['filepath'] = os.path.join('./checkpoints',
-                                                                           f"{self.model_params.model}_{filename}")
-
-            if cb == 'CSVLogger':
-                self.csv_path, filename = os.path.split(self.train_params.callbacks[cb]['filename'])
-                self.train_params.callbacks[cb]['filename'] = filename
-
-            obj = getattr(module, cb)
-            callbacks.append(obj(**self.train_params.callbacks[cb]))
-        return callbacks
 
     @staticmethod
     def clean_up():
@@ -130,6 +112,9 @@ class Trainer(object):
             self.load_data()
         else:
             io_operator = LocalIO()
+        callbacks = CallBacksCreator.get_callbacks(callbacks_config=self.train_params.callbacks,
+                                                   model_type=self.model_params.model,
+                                                   io_operator=io_operator)
 
         print("[Trainer::train] Loaded data")
         SystemOps.create_dir('parser_output')
@@ -166,7 +151,7 @@ class Trainer(object):
             train_generator,
             validation_data=validation_generator,
             epochs=self.train_params.num_epochs,
-            callbacks=self.callbacks,
+            callbacks=callbacks,
             steps_per_epoch=self.train_params.steps_per_epoch,
             workers=self.train_params.workers,
             use_multiprocessing=self.train_params.use_multiprocessing
@@ -182,5 +167,4 @@ class Trainer(object):
         # send saved model to 'trained_model' directory
         io_operator.write('trained_model', self.train_params.output_dir)
         io_operator.write('parser_output', self.train_params.output_dir)
-        io_operator.write('checkpoints', self.train_params.output_dir)
         io_operator.write('train_logs.csv', self.train_params.output_dir)

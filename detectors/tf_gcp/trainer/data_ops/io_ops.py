@@ -50,7 +50,7 @@ class CloudIO(IO):
     def __init__(self, bucket: Bucket):
         """ Init method
         Args:
-            bucket (Optional[Bucket]): Google Cloud Storage bucket name
+            bucket (Bucket): Google Cloud Storage bucket name
         """
         super(CloudIO, self).__init__(bucket=bucket)
 
