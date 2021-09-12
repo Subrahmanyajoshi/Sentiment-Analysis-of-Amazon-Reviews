@@ -1,7 +1,7 @@
 # NOTE: while mentioning Google cloud storage paths, mention full path starting from 'gs://'
 train_params:
   batch_size: 256
-  num_epochs: 3
+  num_epochs: 10
   steps_per_epoch: 1700
   data_dir: 'gs://text-analysis-323506/train_data/'
   output_dir: 'gs://text-analysis-323506/train_results/'
@@ -29,7 +29,7 @@ train_params:
       monitor: 'val_accuracy'
       mode: 'min'
       verbose: 1
-      patience: 3
+      patience: 5
 
     # Csv logger callback.
     CSVLogger:
