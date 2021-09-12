@@ -101,8 +101,8 @@ class Trainer(object):
         return X_train, y_train, X_val, y_val
 
     def save_tokenizer(self):
-        tokenizer_pickle = Tokenizer(tokenizer=self.tokenizer, top_k=Trainer.TOP_K,
-                                     max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH)
+        tokenizer_pickle = TokenizerDetails(tokenizer=self.tokenizer, top_k=Trainer.TOP_K,
+                                            max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH)
         with open('tokenizer.pickle', 'wb') as handle:
             pickle.dump(tokenizer_pickle, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -130,7 +130,7 @@ class Trainer(object):
                                       f"Please choose between CNN and VGG19")
         Model.summary()
         print(f"[Trainer::train] Built {self.model_params.model} model")
-        
+
         SystemOps.check_and_delete('checkpoints')
         SystemOps.create_dir('checkpoints')
 
