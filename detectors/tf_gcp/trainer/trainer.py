@@ -103,7 +103,7 @@ class Trainer(object):
     def save_tokenizer(self):
         tokenizer_pickle = TokenizerDetails(tokenizer=self.tokenizer, top_k=Trainer.TOP_K,
                                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH)
-        with open('tokenizer.pickle', 'wb') as handle:
+        with open('parser_output/tokenizer.pickle', 'wb') as handle:
             pickle.dump(tokenizer_pickle, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def train(self):
@@ -119,7 +119,10 @@ class Trainer(object):
         print("[Trainer::train] Loaded data")
         SystemOps.create_dir('parser_output')
         X_train, y_train, X_val, y_val = self.preprocess()
+
         self.save_tokenizer()
+        print(f"Dumping tokenizer pickle file to {self.train_params.output_dir}")
+        io_operator.write('parser_output', self.train_params.output_dir)
 
         num_features = len(self.tokenizer.word_index) + 1
         if self.model_params.model == 'CNN':
@@ -166,5 +169,4 @@ class Trainer(object):
 
         # send saved model to 'trained_model' directory
         io_operator.write('trained_model', self.train_params.output_dir)
-        io_operator.write('parser_output', self.train_params.output_dir)
         io_operator.write('train_logs.csv', self.train_params.output_dir)
