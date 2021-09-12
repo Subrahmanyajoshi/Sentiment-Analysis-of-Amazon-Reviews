@@ -4,8 +4,8 @@ import pickle
 
 import pandas as pd
 
+from tqdm import tqdm
 from argparse import Namespace
-
 from sklearn.metrics import confusion_matrix
 from tensorflow.keras.preprocessing import sequence
 
@@ -78,7 +78,7 @@ class Predictor(object):
         lines = self.tokenizer_details.tokenizer.texts_to_sequences(lines)
         lines = sequence.pad_sequences(lines, maxlen=self.tokenizer_details.max_sequence_length)
 
-        for line in lines:
+        for line in tqdm(lines, desc="Predicting"):
             predicted_labels.append(self.predict(line))
 
         test_df['predictions'] = predicted_labels
