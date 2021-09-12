@@ -17,7 +17,7 @@ class GCSCallback(Callback):
     def on_epoch_end(self, epoch, logs=None):
         for cp_file in os.listdir('./checkpoints'):
             src_path = os.path.join('./checkpoints', cp_file)
-            self.io_operator.write(src_path=src_path, dest_path=self.checkpoint_path)
+            self.io_operator.write(src_path=src_path, dest_path=self.checkpoint_path, use_system_cmd=False)
 
 
 class CallBacksCreator(object):
