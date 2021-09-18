@@ -39,11 +39,13 @@ class CNNModel(Model):
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
-        model.add(layers.Dropout(rate=0.2))
         model.add(layers.Conv1D(filters=64, kernel_size=3, padding='same', activation='relu',
                                 bias_initializer='random_uniform'))
         model.add(layers.MaxPooling1D(pool_size=3))
         model.add(layers.Conv1D(filters=128, kernel_size=3, padding='same', activation='relu',
+                                bias_initializer='random_uniform'))
+        model.add(layers.MaxPooling1D(pool_size=3))
+        model.add(layers.Conv1D(filters=256, kernel_size=3, padding='same', activation='relu',
                                 bias_initializer='random_uniform'))
         model.add(layers.GlobalAveragePooling1D())
         model.add(layers.Dropout(rate=0.2))
