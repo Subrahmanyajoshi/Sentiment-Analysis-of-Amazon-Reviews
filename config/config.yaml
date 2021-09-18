@@ -39,6 +39,7 @@ train_params:
       append: False
 
 model_params:
+  # Two types of models are available. CNN and LSTM. choose one of them.
   model: 'CNN'
   optimizer: 'adam'
   loss: "binary_crossentropy"

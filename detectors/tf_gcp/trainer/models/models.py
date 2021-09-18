@@ -53,3 +53,34 @@ class CNNModel(Model):
                       loss=model_params.loss,
                       metrics=model_params.metrics)
         return model
+
+
+class LSTMModel(Model):
+
+    def __init__(self, num_features: int, max_sequence_length: int):
+        """ Init method
+        Args:
+            num_features (int): Total number of words
+            max_sequence_length (int): Maximum allowed length for an inout sequence
+        """
+        self.num_features = num_features
+        self.max_sequence_length = max_sequence_length
+
+    def build(self, model_params: Namespace):
+        """ Creates an lstm model, compiles it and returns it
+        Args:
+        Returns:
+            Built model
+        """
+        model = Sequential()
+        model.add(layers.Embedding(input_dim=self.num_features,
+                                   output_dim=model_params.embedding_dim,
+                                   input_length=self.max_sequence_length))
+        model.add(layers.SpatialDropout1D(0.2))
+        model.add(layers.LSTM(100, recurrent_dropout=0.2))
+        model.add(layers.Dense(1, activation='sigmoid'))
+
+        model.compile(optimizer=model_params.optimizer,
+                      loss=model_params.loss,
+                      metrics=model_params.metrics)
+        return model
