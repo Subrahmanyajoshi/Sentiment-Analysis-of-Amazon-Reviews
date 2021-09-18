@@ -23,6 +23,7 @@ train_params:
       verbose: 1
       period: 1
       save_best_only: False
+      save_weights_only: True
 
     # Early stopping callback.
     EarlyStopping:
