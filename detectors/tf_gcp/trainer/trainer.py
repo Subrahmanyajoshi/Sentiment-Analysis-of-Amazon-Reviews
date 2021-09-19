@@ -169,4 +169,4 @@ class Trainer(object):
 
         # send saved model to 'trained_model' directory
         io_operator.write('trained_model', self.train_params.output_dir)
-        io_operator.write('train_logs.csv', os.path.join(self.train_params.output_dir, os.path.dirname(model_path)))
+        io_operator.write('train_logs.csv', self.train_params.output_dir)
