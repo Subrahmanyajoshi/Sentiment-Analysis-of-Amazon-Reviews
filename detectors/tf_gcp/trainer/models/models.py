@@ -49,6 +49,7 @@ class CNNModel(Model):
                                 bias_initializer='random_uniform'))
         model.add(layers.GlobalAveragePooling1D())
         model.add(layers.Dropout(rate=0.2))
+        model.add(layers.Dense(128, activation='relu'))
         model.add(layers.Dense(1, activation='sigmoid'))
 
         model.compile(optimizer=model_params.optimizer,
@@ -78,8 +79,11 @@ class LSTMModel(Model):
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
-        model.add(layers.SpatialDropout1D(0.2))
-        model.add(layers.LSTM(100, recurrent_dropout=0.2))
+        model.add(layers.LSTM(128, input_shape=model_params.embedding_dim, activation='relu', return_sequences=True))
+        model.add(layers.Dropout(rate=0.2))
+        model.add(layers.LSTM(128, activation='relu'))
+        model.add(layers.Dropout(rate=0.2))
+        model.add(layers.Dense(128, activation='relu'))
         model.add(layers.Dense(1, activation='sigmoid'))
 
         model.compile(optimizer=model_params.optimizer,
