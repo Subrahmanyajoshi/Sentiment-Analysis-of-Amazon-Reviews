@@ -14,7 +14,7 @@ from detectors.common import BucketOps, SystemOps
 from detectors.tf_gcp.trainer.callbacks import CallBacksCreator
 from detectors.tf_gcp.trainer.data_ops.data_generator import DataGenerator
 from detectors.tf_gcp.trainer.data_ops.io_ops import CloudIO, LocalIO
-from detectors.tf_gcp.trainer.models.models import CNNModel, LSTMModel
+from detectors.tf_gcp.trainer.models.models import CNNModel, LSTMModel, HybridModel
 
 
 class TokenizerDetails(object):
@@ -128,9 +128,12 @@ class Trainer(object):
         elif self.model_params.model == 'LSTM':
             Model = LSTMModel(num_features=num_features,
                               max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
+        elif self.model_params.model == 'Hybrid':
+            Model = HybridModel(num_features=num_features,
+                                max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
         else:
             raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
-                                      f"Please choose between CNN and LSTM")
+                                      f"Please choose between CNN, LSTM and Hybrid")
         Model.summary()
         print(f"[Trainer::train] Built {self.model_params.model} model")
 

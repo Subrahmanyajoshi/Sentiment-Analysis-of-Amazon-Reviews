@@ -40,7 +40,8 @@ train_params:
       append: False
 
 model_params:
-  # Two types of models are available. CNN and LSTM. choose one of them.
+  # Three types of models are available. 'CNN', 'LSTM' and 'Hybrid'. Hybrid model is a mixture of Conv1D layers and
+  # LSTM cells.
   model: 'CNN'
   optimizer: 'adam'
   loss: "binary_crossentropy"

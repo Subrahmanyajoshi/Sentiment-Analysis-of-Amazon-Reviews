@@ -39,17 +39,11 @@ class CNNModel(Model):
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
-        model.add(layers.Conv1D(filters=64, kernel_size=3, padding='same', activation='relu',
-                                bias_initializer='random_uniform'))
+        model.add(layers.Conv1D(filters=64, kernel_size=3, padding='same', activation='relu'))
         model.add(layers.MaxPooling1D(pool_size=3))
-        model.add(layers.Conv1D(filters=128, kernel_size=3, padding='same', activation='relu',
-                                bias_initializer='random_uniform'))
-        model.add(layers.MaxPooling1D(pool_size=3))
-        model.add(layers.Conv1D(filters=256, kernel_size=3, padding='same', activation='relu',
-                                bias_initializer='random_uniform'))
+        model.add(layers.Conv1D(filters=128, kernel_size=3, padding='same', activation='relu'))
         model.add(layers.GlobalAveragePooling1D())
         model.add(layers.Dropout(rate=0.2))
-        model.add(layers.Dense(128, activation='relu'))
         model.add(layers.Dense(1, activation='sigmoid'))
 
         model.compile(optimizer=model_params.optimizer,
@@ -79,11 +73,39 @@ class LSTMModel(Model):
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
-        model.add(layers.LSTM(128, input_shape=model_params.embedding_dim, activation='relu', return_sequences=True))
-        model.add(layers.Dropout(rate=0.2))
-        model.add(layers.LSTM(128, activation='relu'))
-        model.add(layers.Dropout(rate=0.2))
-        model.add(layers.Dense(128, activation='relu'))
+        model.add(layers.LSTM(128, recurrent_dropout=0.2))
+        model.add(layers.Dense(1, activation='sigmoid'))
+
+        model.compile(optimizer=model_params.optimizer,
+                      loss=model_params.loss,
+                      metrics=model_params.metrics)
+        return model
+
+
+class HybridModel(Model):
+
+    def __init__(self, num_features: int, max_sequence_length: int):
+        """ Init method
+        Args:
+            num_features (int): Total number of words
+            max_sequence_length (int): Maximum allowed length for an inout sequence
+        """
+        self.num_features = num_features
+        self.max_sequence_length = max_sequence_length
+
+    def build(self, model_params: Namespace):
+        """ Creates an hybrid (lstm + cnn) model, compiles it and returns it
+        Args:
+        Returns:
+            Built model
+        """
+        model = Sequential()
+        model.add(layers.Embedding(input_dim=self.num_features,
+                                   output_dim=model_params.embedding_dim,
+                                   input_length=self.max_sequence_length))
+        model.add(layers.Conv1D(filters=64, kernel_size=3, padding='same', activation='relu'))
+        model.add(layers.MaxPooling1D(pool_size=3))
+        model.add(layers.LSTM(128, recurrent_dropout=0.2))
         model.add(layers.Dense(1, activation='sigmoid'))
 
         model.compile(optimizer=model_params.optimizer,
