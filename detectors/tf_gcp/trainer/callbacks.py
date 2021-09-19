@@ -23,18 +23,19 @@ class GCSCallback(Callback):
 class CallBacksCreator(object):
 
     @staticmethod
-    def get_callbacks(callbacks_config: Dict, model_type: str, io_operator: Union[LocalIO, CloudIO]):
+    def get_callbacks(callbacks_config: Dict, model_type: str, io_operator: Union[LocalIO, CloudIO],
+                      out_dir: str):
         callbacks = []
         module = importlib.import_module('tensorflow.keras.callbacks')
-        cp_path = None
+        cp_path = os.path.join(out_dir, 'checkpoints')
         for cb in callbacks_config:
             if cb == 'ModelCheckpoint':
-                cp_path, filename = os.path.split(callbacks_config[cb]['filepath'])
+                _, filename = os.path.split(callbacks_config[cb]['filepath'])
                 callbacks_config[cb]['filepath'] = os.path.join('./checkpoints',
                                                                 f"{model_type}_{filename}")
 
             if cb == 'CSVLogger':
-                csv_path, filename = os.path.split(callbacks_config[cb]['filename'])
+                _, filename = os.path.split(callbacks_config[cb]['filename'])
                 callbacks_config[cb]['filename'] = filename
 
             obj = getattr(module, cb)

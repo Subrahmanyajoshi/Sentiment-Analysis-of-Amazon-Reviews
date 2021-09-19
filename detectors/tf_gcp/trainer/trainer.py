@@ -42,6 +42,8 @@ class Trainer(object):
         self.csv_path = None
         self.bucket = None
         self.tokenizer = Tokenizer(num_words=Trainer.TOP_K)
+        self.output_dir = os.path.join(self.train_params.output_dir,
+                                       f"{self.model_params.model}_{datetime.now().strftime('%Y_%m_%d-%H:%M:%S')}")
 
         bucket_name = 'unk'
         if self.train_params.data_dir.startswith('gs://'):
@@ -111,15 +113,16 @@ class Trainer(object):
             io_operator = LocalIO()
         callbacks = CallBacksCreator.get_callbacks(callbacks_config=self.train_params.callbacks,
                                                    model_type=self.model_params.model,
-                                                   io_operator=io_operator)
+                                                   io_operator=io_operator,
+                                                   out_dir=self.output_dir)
 
         print("[Trainer::train] Loaded data")
         SystemOps.create_dir('parser_output')
         X_train, y_train, X_val, y_val = self.preprocess()
 
         self.save_tokenizer()
-        print(f"Dumping tokenizer pickle file to {self.train_params.output_dir}")
-        io_operator.write('parser_output', self.train_params.output_dir)
+        print(f"Dumping tokenizer pickle file to {self.output_dir}")
+        io_operator.write('parser_output', self.output_dir)
 
         num_features = len(self.tokenizer.word_index) + 1
         if self.model_params.model == 'CNN':
@@ -170,6 +173,5 @@ class Trainer(object):
                                   f"{self.model_params.model}_{Trainer.MODEL_NAME}")
         Model.save_weights(model_path)
 
-        # send saved model to 'trained_model' directory
-        io_operator.write('trained_model', self.train_params.output_dir)
-        io_operator.write('train_logs.csv', self.train_params.output_dir)
+        io_operator.write('trained_model', self.output_dir, use_system_cmd=False)
+        io_operator.write('train_logs.csv', self.output_dir, use_system_cmd=False)
