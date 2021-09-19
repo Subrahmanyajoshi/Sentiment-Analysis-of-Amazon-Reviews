@@ -34,7 +34,8 @@ train_params:
 
     # Csv logger callback.
     CSVLogger:
-      # Only mention csv file name here, This csb file will be dumped to  'output_dir' specified above in 'train_params' 
+      # Only mention csv file name here, This csv file will be dumped to 'output_dir' specified above in train_params
+      # at the same place as final trained model
       filename: 'train_logs.csv'
       separator: ','
       append: False
