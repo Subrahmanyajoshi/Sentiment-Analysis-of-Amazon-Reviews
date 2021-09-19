@@ -42,6 +42,9 @@ class Trainer(object):
         self.csv_path = None
         self.bucket = None
         self.tokenizer = Tokenizer(num_words=Trainer.TOP_K)
+
+        # Create a unique directory inside mentioned output directory for each training run. This makes sure that,
+        # models or checkpoints or anything else that gets dumped during training, doesn't get overwritten.
         self.output_dir = os.path.join(self.train_params.output_dir,
                                        f"{self.model_params.model}_{datetime.now().strftime('%Y_%m_%d-%H:%M:%S')}")
 
@@ -122,7 +125,7 @@ class Trainer(object):
 
         self.save_tokenizer()
         print(f"Dumping tokenizer pickle file to {self.output_dir}")
-        io_operator.write('parser_output', self.output_dir)
+        io_operator.write('parser_output', self.output_dir, use_system_cmd=False)
 
         num_features = len(self.tokenizer.word_index) + 1
         if self.model_params.model == 'CNN':
