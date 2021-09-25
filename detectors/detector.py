@@ -23,17 +23,27 @@ class Predictor(object):
         self.model_params = Namespace(**config.get('model_params'))
         self.model_path = self.config.get('model_path')
         self.tokenizer_path = self.config.get('tokenizer_path')
-        self.tokenizer_details = None
-        self.load_tokenizer()
+        self.test_data = self.load_data()
+        self.tokenizer_details = self.load_tokenizer()
         self.model = self.load_model()
 
+    def load_data(self):
+        if self.data_path.startswith('gs://'):
+            SystemOps.run_command(f"gsutil -m cp -r {self.data_path} ./")
+            self.data_path = os.path.basename(self.data_path)
+
+        print(f'[Predictor::load_data] Reading texts from {self.data_path}')
+        test_data = pd.read_csv(self.data_path)
+        return test_data
+        
     def load_tokenizer(self):
         if self.tokenizer_path.startswith('gs://'):
             SystemOps.run_command(f"gsutil -m cp -r {self.tokenizer_path} ./")
             self.tokenizer_path = os.path.basename(self.tokenizer_path)
 
         with open(self.tokenizer_path, 'rb') as handle:
-            self.tokenizer_details = pickle.load(handle)
+            tokenizer_details = pickle.load(handle)
+        return tokenizer_details
 
     def load_model(self):
         if self.model_path.startswith('gs://'):
@@ -54,6 +64,7 @@ class Predictor(object):
             raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
                                       f"Please choose between CNN, LSTM and Hybrid")
 
+        print(f"[Predictor::load_model] Loading weights for {self.model_params.model} model from {self.model_path}")
         model.load_weights(self.model_path)
         return model
 
@@ -66,20 +77,14 @@ class Predictor(object):
             return 0
 
     def run(self):
-        if self.data_path.startswith('gs://'):
-            SystemOps.run_command(f"gsutil -m cp -r {self.data_path} ./")
-            self.data_path = os.path.basename(self.data_path)
-
-        print(f'Reading texts from {self.data_path}')
-        test_df = pd.read_csv('test_text.csv.gz')
-        lines = list(test_df['input'])
+        lines = list(self.test_data['input'])
         true_labels = []
         predicted_labels = []
 
-        if 'label' in test_df.columns:
-            true_labels = list(test_df['labels'])
+        if 'label' in self.test_data.columns:
+            true_labels = list(self.test_data['labels'])
         else:
-            print(f"Labels are not found in {self.data_path} file. "
+            print(f"[Predictor::run] Labels are not found in {self.data_path} file. "
                   f"Performance metrics and Confusion matrix will not be calculated")
         lines = self.tokenizer_details.tokenizer.texts_to_sequences(lines)
         lines = sequence.pad_sequences(lines, maxlen=self.tokenizer_details.max_sequence_length)
@@ -87,7 +92,7 @@ class Predictor(object):
         for line in tqdm(lines, desc="Predicting"):
             predicted_labels.append(self.predict(line))
 
-        test_df['predictions'] = predicted_labels
+        self.test_data['predictions'] = predicted_labels
 
         if not self.result_path.endswith('.csv'):
             raise ValueError(f"Cannot save result csv file! Specified path {self.result_path} is not a csv file...")
@@ -95,7 +100,7 @@ class Predictor(object):
         if self.result_path.startswith("gs://"):
             directory, self.result_path = os.path.split(self.result_path)
 
-        test_df.to_csv(self.result_path, index=False)
+        self.test_data.to_csv(self.result_path, index=False)
 
         if self.result_path.startswith("gs://"):
             SystemOps.run_command(f"gsutil mv -r {self.result_path} {directory}")
@@ -132,13 +137,13 @@ def main():
     config = YamlConfig.load(filepath=args.config)
 
     if args.train:
-        print('Initialising training')
+        print('[main] Initialising training')
         trainer = Trainer(config=config)
         trainer.train()
         Trainer.clean_up()
 
     if args.predict:
-        print('Initialising testing')
+        print('[main] Initialising testing')
         predictor = Predictor(config=config)
         predictor.run()
         predictor.clean_up()
