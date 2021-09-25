@@ -17,7 +17,7 @@ AI platform notebooks to process them.
 - All preprocessing steps are available in [this](tools/preprocessor.ipynb) notebook.
 
 
-## Training model locally
+## Training models locally
 
 - Install packages from requirements.txt
 ```shell
@@ -88,4 +88,14 @@ python3 -m detectors.detector --predict --config='./config/config.yaml'
 - Classification results will be printed on the screen. 
 
 ## Results
-coming soon :P
+- Three types of model were used
+    1. A single dimensional CNN model.
+    2. An LSTM model.
+    3. A Hybrid model which consists of both CNN layers and LSTM cells.
+- Report for each model:
+
+    | Model  | Train Accuracy  | Validation Accuracy  | Test Accuracy  |
+    |---|---|---|---|
+    |CNN| 96.3% | 93.5% |   | 
+    |LSTM| 96.2% | 94.6% |   | 
+    |Hybrid| 97.6% | 93.7% |   | 
