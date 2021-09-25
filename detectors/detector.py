@@ -10,7 +10,7 @@ from sklearn.metrics import confusion_matrix
 from tensorflow.keras.preprocessing import sequence
 
 from detectors.common import YamlConfig, SystemOps
-from detectors.tf_gcp.trainer.models.models import CNNModel
+from detectors.tf_gcp.trainer.models.models import CNNModel, LSTMModel, HybridModel
 from detectors.tf_gcp.trainer.task import Trainer
 
 
@@ -23,8 +23,9 @@ class Predictor(object):
         self.model_params = Namespace(**config.get('model_params'))
         self.model_path = self.config.get('model_path')
         self.tokenizer_path = self.config.get('tokenizer_path')
-        self.model = self.load_model()
         self.tokenizer_details = None
+        self.load_tokenizer()
+        self.model = self.load_model()
 
     def load_tokenizer(self):
         if self.tokenizer_path.startswith('gs://'):
@@ -42,11 +43,16 @@ class Predictor(object):
         num_features = len(self.tokenizer_details.tokenizer.word_index) + 1
         if self.model_params.model == 'CNN':
             model = CNNModel(num_features=num_features,
-                             max_sequence_length=self.tokenizer_details.max_sequence_length). \
-                build(self.model_params)
+                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
+        elif self.model_params.model == 'LSTM':
+            model = LSTMModel(num_features=num_features,
+                              max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
+        elif self.model_params.model == 'Hybrid':
+            model = HybridModel(num_features=num_features,
+                                max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
         else:
             raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
-                                      f"Please choose between CNN and VGG19")
+                                      f"Please choose between CNN, LSTM and Hybrid")
 
         model.load_weights(self.model_path)
         return model
@@ -64,7 +70,7 @@ class Predictor(object):
             SystemOps.run_command(f"gsutil -m cp -r {self.data_path} ./")
             self.data_path = os.path.basename(self.data_path)
 
-        print(f'Reading images from {self.data_path}')
+        print(f'Reading texts from {self.data_path}')
         test_df = pd.read_csv('test_text.csv.gz')
         lines = list(test_df['input'])
         true_labels = []
@@ -86,7 +92,13 @@ class Predictor(object):
         if not self.result_path.endswith('.csv'):
             raise ValueError(f"Cannot save result csv file! Specified path {self.result_path} is not a csv file...")
 
+        if self.result_path.startswith("gs://"):
+            directory, self.result_path = os.path.split(self.result_path)
+
         test_df.to_csv(self.result_path, index=False)
+
+        if self.result_path.startswith("gs://"):
+            SystemOps.run_command(f"gsutil mv -r {self.result_path} {directory}")
 
         if len(true_labels) != 0:
             cm = confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
