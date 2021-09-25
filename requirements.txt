@@ -3,3 +3,5 @@ tensorflow==2.6.0
 protobuf==3.17.3
 PyYAML==5.4.1
 google-cloud-storage==1.41.1
+scikit-learn==1.0
+tqdm==4.62.3
