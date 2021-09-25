@@ -41,15 +41,18 @@ train_params:
       separator: ','
       append: False
 
+predict_params:
+  model_path: 'gs://text-analysis-323506/train_results/trained_model/2021_08_01-10:07:06/CNN_Amazon_Reviews_Analysis.hdf5'
+  data_path: 'gs://text-analysis-323506/test_images'
+  results_path: 'gs://text-analysis-323506/test_results/CNN_test_results.csv'
+  tokenizer_path: 'gs://text-analysis-323506/train_results_CNN/CNN_2021_09_25-11:20:36/parser_output/tokenizer.pickle'
+
 model_params:
   # Three types of models are available. 'CNN', 'LSTM' and 'Hybrid'. Hybrid model is a mixture of Conv1D layers and
   # LSTM cells.
+  # During prediction, 'model' field should be set to type of model defined in 'model_path' field of 'predict_params'
   model: 'CNN'
   optimizer: 'adam'
   loss: "binary_crossentropy"
   metrics: ["accuracy"]
   embedding_dim: 200
-
-predict_params:
-  model_path: 'gs://text-analysis-323506/train_results/trained_model/2021_08_01-10:07:06/CNN_Amazon_Reviews_Analysis.hdf5'
-  data_path: 'gs://text-analysis-323506/test_images'

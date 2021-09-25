@@ -172,7 +172,7 @@ class Trainer(object):
         # save model as hdf5 file
         SystemOps.create_dir('trained_model')
         SystemOps.create_dir(os.path.join('trained_model', datetime.now().strftime("%Y_%m_%d-%H:%M:%S")))
-        model_path = os.path.join('./trained_model', datetime.now().strftime("%Y_%m_%d-%H:%M:%S"),
+        model_path = os.path.join('trained_model', datetime.now().strftime("%Y_%m_%d-%H:%M:%S"),
                                   f"{self.model_params.model}_{Trainer.MODEL_NAME}")
         Model.save_weights(model_path)
 

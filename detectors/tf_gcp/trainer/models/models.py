@@ -35,6 +35,7 @@ class CNNModel(Model):
         Returns:
             Built model
         """
+        print("[CNNModel::build] Building CNN model")
         model = Sequential()
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
@@ -69,6 +70,7 @@ class LSTMModel(Model):
         Returns:
             Built model
         """
+        print("[LSTMModel::build] Building LSTM model")
         model = Sequential()
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
@@ -99,6 +101,7 @@ class HybridModel(Model):
         Returns:
             Built model
         """
+        print("[HybridModel::build] Building Hybrid model")
         model = Sequential()
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
