@@ -41,7 +41,7 @@ class CNNModel(Model):
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
         model.add(layers.Conv1D(filters=64, kernel_size=3, padding='same', activation='relu'))
-        model.add(layers.MaxPooling1D(pool_size=3))
+        model.add(layers.MaxPooling1D(pool_size=2))
         model.add(layers.Conv1D(filters=128, kernel_size=3, padding='same', activation='relu'))
         model.add(layers.GlobalAveragePooling1D())
         model.add(layers.Dropout(rate=0.2))
@@ -107,7 +107,7 @@ class HybridModel(Model):
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
         model.add(layers.Conv1D(filters=64, kernel_size=3, padding='same', activation='relu'))
-        model.add(layers.MaxPooling1D(pool_size=3))
+        model.add(layers.MaxPooling1D(pool_size=2))
         model.add(layers.LSTM(128, recurrent_dropout=0.2))
         model.add(layers.Dense(1, activation='sigmoid'))
 
