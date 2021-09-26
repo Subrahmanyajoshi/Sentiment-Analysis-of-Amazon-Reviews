@@ -50,16 +50,16 @@ class Predictor(object):
             SystemOps.run_command(f"gsutil -m cp -r {self.model_path} ./")
             self.model_path = os.path.basename(self.model_path)
 
-        num_features = len(self.tokenizer_details.tokenizer.word_index) + 1
+        num_features = min(len(self.tokenizer_details.tokenizer.word_index) + 1, self.tokenizer_details.top_k)
         if self.model_params.model == 'CNN':
             model = CNNModel(num_features=num_features,
-                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
+                             max_sequence_length=self.tokenizer_details.max_sequence_length).build(self.model_params)
         elif self.model_params.model == 'LSTM':
             model = LSTMModel(num_features=num_features,
-                              max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
+                              max_sequence_length=self.tokenizer_details.max_sequence_length).build(self.model_params)
         elif self.model_params.model == 'Hybrid':
             model = HybridModel(num_features=num_features,
-                                max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
+                                max_sequence_length=self.tokenizer_details.max_sequence_length).build(self.model_params)
         else:
             raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
                                       f"Please choose between CNN, LSTM and Hybrid")

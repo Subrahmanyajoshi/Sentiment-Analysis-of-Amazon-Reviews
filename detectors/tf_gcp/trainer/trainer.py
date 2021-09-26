@@ -127,7 +127,7 @@ class Trainer(object):
         print(f"Dumping tokenizer pickle file to {self.output_dir}")
         io_operator.write('parser_output', self.output_dir, use_system_cmd=False)
 
-        num_features = len(self.tokenizer.word_index) + 1
+        num_features = min(len(self.tokenizer.word_index) + 1, Trainer.TOP_K)
         if self.model_params.model == 'CNN':
             Model = CNNModel(num_features=num_features,
                              max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
@@ -149,14 +149,10 @@ class Trainer(object):
         print("[Trainer::train] Creating train and validation generators...")
         train_generator = DataGenerator(input_text=X_train,
                                         labels=y_train,
-                                        batch_size=self.train_params.batch_size,
-                                        bucket=self.bucket,
-                                        num_features=self.tokenizer.word_index)
+                                        batch_size=self.train_params.batch_size)
         validation_generator = DataGenerator(input_text=X_val,
                                              labels=y_val,
-                                             batch_size=self.train_params.batch_size,
-                                             bucket=self.bucket,
-                                             num_features=self.tokenizer.word_index)
+                                             batch_size=self.train_params.batch_size)
 
         print("[Trainer::train] Started training")
         history = Model.fit(

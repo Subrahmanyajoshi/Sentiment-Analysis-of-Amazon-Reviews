@@ -7,20 +7,17 @@ from tensorflow import keras
 
 class DataGenerator(keras.utils.Sequence):
 
-    def __init__(self, input_text: np.ndarray, labels: np.ndarray, batch_size: int, bucket: Bucket, num_features: Dict):
+    def __init__(self, input_text: np.ndarray, labels: np.ndarray, batch_size: int):
         """ Init Method
         Args:
             input_text (np.array): numpy array of input texts
             labels (np.array): labels associated with filenames
             batch_size (int): batch size of model
             bucket (Bucket): Gcs bucket name
-            num_features (Dict): total number of words indexed by tokenizer
         """
         self.input = input_text
         self.labels = labels
         self.batch_size = batch_size
-        self.bucket = bucket
-        self.num_features = num_features
 
     def __len__(self):
         return (np.ceil(len(self.input) / float(self.batch_size))).astype(np.int)
