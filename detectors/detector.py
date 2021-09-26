@@ -18,8 +18,8 @@ class Predictor(object):
 
     def __init__(self, config: dict):
         self.config = config.get('predict_params', {})
-        self.data_path = self.config.get('data_path', '')
-        self.result_path = self.config.get('result_path', '')
+        self.data_path = self.config.get('data_path')
+        self.result_path = self.config.get('result_path')
         self.model_params = Namespace(**config.get('model_params'))
         self.model_path = self.config.get('model_path')
         self.tokenizer_path = self.config.get('tokenizer_path')
@@ -50,16 +50,16 @@ class Predictor(object):
             SystemOps.run_command(f"gsutil -m cp -r {self.model_path} ./")
             self.model_path = os.path.basename(self.model_path)
 
-        num_features = min(len(self.tokenizer_details.tokenizer.word_index) + 1, self.tokenizer_details.top_k)
+        num_features = len(self.tokenizer_details.tokenizer.word_index) + 1
         if self.model_params.model == 'CNN':
             model = CNNModel(num_features=num_features,
-                             max_sequence_length=self.tokenizer_details.max_sequence_length).build(self.model_params)
+                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
         elif self.model_params.model == 'LSTM':
             model = LSTMModel(num_features=num_features,
-                              max_sequence_length=self.tokenizer_details.max_sequence_length).build(self.model_params)
+                              max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
         elif self.model_params.model == 'Hybrid':
             model = HybridModel(num_features=num_features,
-                                max_sequence_length=self.tokenizer_details.max_sequence_length).build(self.model_params)
+                                max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH).build(self.model_params)
         else:
             raise NotImplementedError(f"{self.model_params.model} model is currently not supported. "
                                       f"Please choose between CNN, LSTM and Hybrid")
@@ -80,12 +80,13 @@ class Predictor(object):
         lines = list(self.test_data['input'])
         true_labels = []
         predicted_labels = []
-
-        if 'label' in self.test_data.columns:
+        
+        if 'labels' in self.test_data.columns:
             true_labels = list(self.test_data['labels'])
         else:
             print(f"[Predictor::run] Labels are not found in {self.data_path} file. "
                   f"Performance metrics and Confusion matrix will not be calculated")
+        
         lines = self.tokenizer_details.tokenizer.texts_to_sequences(lines)
         lines = sequence.pad_sequences(lines, maxlen=self.tokenizer_details.max_sequence_length)
 
@@ -93,22 +94,20 @@ class Predictor(object):
             predicted_labels.append(self.predict(line))
 
         self.test_data['predictions'] = predicted_labels
-
         if not self.result_path.endswith('.csv'):
             raise ValueError(f"Cannot save result csv file! Specified path {self.result_path} is not a csv file...")
 
         if self.result_path.startswith("gs://"):
             directory, self.result_path = os.path.split(self.result_path)
-
-        self.test_data.to_csv(self.result_path, index=False)
-
-        if self.result_path.startswith("gs://"):
+            self.test_data.to_csv(self.result_path, index=False)
             SystemOps.run_command(f"gsutil mv -r {self.result_path} {directory}")
+        else:
+            self.test_data.to_csv(self.result_path, index=False)
 
         if len(true_labels) != 0:
             cm = confusion_matrix(y_true=true_labels, y_pred=predicted_labels)
             tn, fp, fn, tp = cm.ravel()
-            metrics = {'val_accuracy': tp + tn / len(true_labels), 'val_precision': tp / (tp + fp),
+            metrics = {'val_accuracy': (tp + tn) / len(true_labels), 'val_precision': tp / (tp + fp),
                        'val_recall': tp / (tp + fn), 'val_f1': tp / (tp + 0.5 * (fp + fn))}
 
             for key, value in metrics.items():
