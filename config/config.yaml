@@ -2,7 +2,7 @@
 train_params:
   batch_size: 2048
   num_epochs: 5
-  steps_per_epoch: 1700
+  steps_per_epoch: 1000
   # Mention path to directory here. train data should be uploaded as train_val.zip to this director. Go through README.md
   data_dir: 'gs://text-analysis-323506/train_data/'
   output_dir: 'gs://text-analysis-323506/train_results/'

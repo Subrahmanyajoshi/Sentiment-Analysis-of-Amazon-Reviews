@@ -38,6 +38,9 @@ class CallBacksCreator(object):
                 _, filename = os.path.split(callbacks_config[cb]['filename'])
                 callbacks_config[cb]['filename'] = filename
 
+            if cb == 'TensorBoard':
+                callbacks_config[cb]['log_dir'] = f"{callbacks_config[cb]['log_dir']}_{model_type}"
+
             obj = getattr(module, cb)
             callbacks.append(obj(**callbacks_config[cb]))
         gcs_callback = GCSCallback(cp_path=cp_path, io_operator=io_operator)
