@@ -31,7 +31,7 @@ class Predictor(object):
     def load_data(self):
         if self.data_path.startswith('gs://'):
             print(f'[Predictor::load_data] Copying test data {self.data_path} to here...')
-            SystemOps.run_command(f"gsutil -m cp -r {self.data_path} ./ &>/dev/null")
+            SystemOps.run_command(f"gsutil -m cp -r {self.data_path} ./")
             self.data_path = os.path.basename(self.data_path)
 
         print(f'[Predictor::load_data] Reading texts from {self.data_path}')
@@ -41,7 +41,7 @@ class Predictor(object):
     def load_tokenizer(self):
         if self.tokenizer_path.startswith('gs://'):
             print(f'[Predictor::load_tokenizer] Copying tokenizer {self.tokenizer_path} to here...')
-            SystemOps.run_command(f"gsutil -m cp -r {self.tokenizer_path} ./ &>/dev/null")
+            SystemOps.run_command(f"gsutil -m cp -r {self.tokenizer_path} ./")
             self.tokenizer_path = os.path.basename(self.tokenizer_path)
 
         with open(self.tokenizer_path, 'rb') as handle:
@@ -51,7 +51,7 @@ class Predictor(object):
     def load_model(self):
         if self.model_path.startswith('gs://'):
             print(f'[Predictor::load_model] Copying model {self.model_path} to here...')
-            SystemOps.run_command(f"gsutil -m cp -r {self.model_path} ./ &>/dev/null")
+            SystemOps.run_command(f"gsutil -m cp -r {self.model_path} ./")
             self.model_path = os.path.basename(self.model_path)
 
         num_features = min(len(self.tokenizer_details.tokenizer.word_index) + 1, self.tokenizer_details.top_k)
@@ -105,7 +105,7 @@ class Predictor(object):
             directory, file_name = os.path.split(self.result_path)
             self.test_data.to_csv(file_name, index=False)
             print(f'[Predictor::run] Copying result csv file to Google Storage bucket...')
-            SystemOps.run_command(f"gsutil mv -r {file_name} {self.result_path} &>/dev/null")
+            SystemOps.run_command(f"gsutil mv -r {file_name} {self.result_path}")
         else:
             self.test_data.to_csv(self.result_path, index=False)
 

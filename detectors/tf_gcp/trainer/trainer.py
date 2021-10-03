@@ -69,10 +69,9 @@ class Trainer(object):
         SystemOps.check_and_delete('config.yaml')
 
     def load_data(self):
-        print(f"[Trainer::load_data] Copying data from {self.train_params.data_dir} to here. This may take a while "
-              f"depending on size of data ")
+        print(f"[Trainer::load_data] Copying data from {self.train_params.data_dir} to here...")
         SystemOps.run_command(f"gsutil -m cp -r "
-                              f"{os.path.join(self.train_params.data_dir, 'train_val.zip')} &>/dev/null")
+                              f"{os.path.join(self.train_params.data_dir, 'train_val.zip')}")
         with zipfile.ZipFile('train_val.zip', 'r') as zip_ref:
             zip_ref.extractall('./')
         SystemOps.check_and_delete('train_val.zip')
