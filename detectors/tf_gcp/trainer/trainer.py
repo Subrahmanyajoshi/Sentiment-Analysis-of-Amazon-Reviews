@@ -12,6 +12,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 
 from detectors.common import BucketOps, SystemOps
 from detectors.tf_gcp.trainer.callbacks import CallBacksCreator
+from detectors.tf_gcp.trainer.data_ops.data_generator import DataGenerator
 from detectors.tf_gcp.trainer.data_ops.io_ops import CloudIO, LocalIO
 from detectors.tf_gcp.trainer.models.models import CNNModel, LSTMModel, HybridModel
 
@@ -21,13 +22,13 @@ class TokenizerDetails(object):
     def __init__(self, **kwargs):
         self.tokenizer = kwargs.get('tokenizer', None)
         self.top_k = kwargs.get('top_k', 20000)
-        self.max_sequence_length = kwargs.get('max_sequence_length', 500)
+        self.max_sequence_length = kwargs.get('max_sequence_length', 110)
 
 
 class Trainer(object):
     MODEL_NAME = 'Amazon_Reviews_Analysis.hdf5'
     TOP_K = 20000
-    MAX_SEQUENCE_LENGTH = 500
+    MAX_SEQUENCE_LENGTH = 110
 
     def __init__(self, config: dict):
         """ Init method
@@ -145,14 +146,24 @@ class Trainer(object):
         SystemOps.check_and_delete('checkpoints')
         SystemOps.create_dir('checkpoints')
 
+        print("[Trainer::train] Creating train and validation generators...")
+        train_generator = DataGenerator(input_text=X_train,
+                                        labels=y_train,
+                                        batch_size=self.train_params.batch_size)
+        validation_generator = DataGenerator(input_text=X_val,
+                                             labels=y_val,
+                                             batch_size=self.train_params.batch_size)
+
         print("[Trainer::train] Started training")
         history = Model.fit(
-            x=X_train,
-            y=y_train,
-            validation_data=(X_val, y_val),
+            train_generator,
+            validation_data=validation_generator,
             epochs=self.train_params.num_epochs,
             callbacks=callbacks,
-            steps_per_epoch=self.train_params.steps_per_epoch)
+            steps_per_epoch=self.train_params.steps_per_epoch,
+            workers=self.train_params.workers,
+            use_multiprocessing=self.train_params.use_multiprocessing
+        )
 
         # save model as hdf5 file
         SystemOps.create_dir('trained_model')
