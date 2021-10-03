@@ -2,15 +2,15 @@
 ## Overview
 - The goal of this project is to provide a platform to build and train machine learning models for text
 classification using Google Cloud's AI platform.
-- In this project I have used Amazon reviews dataset to detect sentiments from review texts.
+- In this project I have used Amazon reviews dataset to extract sentiments from review texts.
 
 ## Dataset
 - The dataset was obtained from Kaggle [here](https://www.kaggle.com/bittlingmayer/amazonreviews?select=train.ft.txt.bz2).
-- Dataset is already split into train and test datasets. All details about the data also can be found in kaggle itself.
+- Dataset was already split into train and test datasets. All details about the data also can be found in kaggle itself.
 
 ## Data preprocessing
 - Original dataset file was in bz2 compressed format.
-- Decompressing it get's text files which, in every line contain label and review text.
+- Decompressing it get's text files which, in every line contain a label and a review text.
 - These text files were converted into csv format to access and process them faster.
 - These text files were too big to be processed in local machine. I have used google cloud's 
 AI platform notebooks to process them.
@@ -24,6 +24,7 @@ AI platform notebooks to process them.
 pip install -r requirements.txt
 ```
 - Open config file at config/config.yaml and update it accordingly.
+- Make sure 'model_type' parameter under 'model_params' section is set to model under consideration.
 - Go to project root and run following. It sets environment variable 
    PYTHONPATH to project root so that modules can be imported easily.
    
@@ -75,7 +76,8 @@ http://<external_ip_address>:6006/
 ```
 
 ## Predicting
-- Open config file at config/config.yaml and update model path, and data path at the very bottom.
+- Open config file at config/config.yaml and update parameters under 'predict_params' section.
+- Make sure 'model_type' parameter under 'model_params' section is set to model under consideration.
 - Go to project root and run following. It sets environment variable PYTHONPATH to project root so that 
    modules can be imported easily.
 ```shell
@@ -92,10 +94,13 @@ python3 -m detectors.detector --predict --config='./config/config.yaml'
     1. A single dimensional CNN model.
     2. An LSTM model.
     3. A Hybrid model which consists of both CNN layers and LSTM cells.
-- Model performance report:
+- CNN and Hybrid models were run for a batch size of 2048, for 5 epochs.
+- LSTM kept throwing out of memory error, so batch size had to be reduced to 1024.
+- CNN had the best loss/accuracy at 3rd epoch. Hybrid had the same for 2nd epoch.
+- Model performance report: (LSTM results will soon be updated)
 
     | Model  | Train Accuracy  | Validation Accuracy  | Test Accuracy  |
     |---|---|---|---|
-    |CNN|  |  |   | 
+    |CNN| 94.08% | 94.13% | 93.20%  | 
     |LSTM|  |  |   | 
-    |Hybrid|  |  |   | 
+    |Hybrid| 94.99% | 95.01% | 94.28%  | 

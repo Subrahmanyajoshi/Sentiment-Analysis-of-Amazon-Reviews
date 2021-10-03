@@ -1,0 +1,4 @@
+val_accuracy: 0.932
+val_precision: 0.9432924248836225
+val_recall: 0.915400410677618
+val_f1: 0.929137140475198
