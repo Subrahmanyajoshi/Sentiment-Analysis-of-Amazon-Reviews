@@ -3,6 +3,7 @@ import os
 import pickle
 
 import pandas as pd
+import numpy as np
 
 from tqdm import tqdm
 from argparse import Namespace
@@ -68,8 +69,8 @@ class Predictor(object):
         model.load_weights(self.model_path)
         return model
 
-    def predict(self, text: str):
-        result = self.model.predict(text)
+    def predict(self, review: np.ndarray):
+        result = self.model.predict(np.array([review]))
         result = result[0][0]
         if result > 0.5:
             return 1

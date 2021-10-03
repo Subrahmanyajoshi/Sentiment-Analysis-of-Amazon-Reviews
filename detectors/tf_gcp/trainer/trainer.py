@@ -22,13 +22,13 @@ class TokenizerDetails(object):
     def __init__(self, **kwargs):
         self.tokenizer = kwargs.get('tokenizer', None)
         self.top_k = kwargs.get('top_k', 20000)
-        self.max_sequence_length = kwargs.get('max_sequence_length', 110)
+        self.max_sequence_length = kwargs.get('max_sequence_length', 500)
 
 
 class Trainer(object):
     MODEL_NAME = 'Amazon_Reviews_Analysis.hdf5'
     TOP_K = 20000
-    MAX_SEQUENCE_LENGTH = 110
+    MAX_SEQUENCE_LENGTH = 500
 
     def __init__(self, config: dict):
         """ Init method
