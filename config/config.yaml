@@ -5,9 +5,6 @@ train_params:
   steps_per_epoch: 1700
   data_dir: 'gs://text-analysis-323506/train_data/'
   output_dir: 'gs://text-analysis-323506/train_results/'
-  use_multiprocessing: True
-  # number of workers to use if multiprocessing is enabled
-  workers: 6
 
   # Comment/remove a callback section to disable it
   callbacks:
