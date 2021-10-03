@@ -99,9 +99,9 @@ class Predictor(object):
             raise ValueError(f"Cannot save result csv file! Specified path {self.result_path} is not a csv file...")
 
         if self.result_path.startswith("gs://"):
-            directory, self.result_path = os.path.split(self.result_path)
-            self.test_data.to_csv(self.result_path, index=False)
-            SystemOps.run_command(f"gsutil mv -r {self.result_path} {directory}")
+            directory, file_name = os.path.split(self.result_path)
+            self.test_data.to_csv(file_name, index=False)
+            SystemOps.run_command(f"gsutil mv -r {file_name} {self.result_path}")
         else:
             self.test_data.to_csv(self.result_path, index=False)
 
