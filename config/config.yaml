@@ -1,13 +1,14 @@
 # NOTE: while mentioning Google cloud storage paths, mention full path starting from 'gs://'
 train_params:
   batch_size: 2048
-  num_epochs: 10
+  num_epochs: 5
   steps_per_epoch: 1700
+  # Mention path to directory here. train data should be uploaded as train_val.zip to this director. Go through README.md
   data_dir: 'gs://text-analysis-323506/train_data/'
   output_dir: 'gs://text-analysis-323506/train_results/'
   use_multiprocessing: True
   # number of workers to use if multiprocessing is enabled
-  workers: 6
+  workers: 10
 
   # Comment/remove a callback section to disable it
   callbacks:

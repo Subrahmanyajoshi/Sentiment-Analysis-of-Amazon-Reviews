@@ -69,7 +69,10 @@ class Trainer(object):
         SystemOps.check_and_delete('config.yaml')
 
     def load_data(self):
-        SystemOps.run_command(f"gsutil -m cp -r {os.path.join(self.train_params.data_dir, 'train_val.zip')} ./")
+        print(f"[Trainer::load_data] Copying data from {self.train_params.data_dir} to here. This may take a while "
+              f"depending on size of data ")
+        SystemOps.run_command(f"gsutil -m cp -r "
+                              f"{os.path.join(self.train_params.data_dir, 'train_val.zip')} &>/dev/null")
         with zipfile.ZipFile('train_val.zip', 'r') as zip_ref:
             zip_ref.extractall('./')
         SystemOps.check_and_delete('train_val.zip')
@@ -171,5 +174,8 @@ class Trainer(object):
         model_path = os.path.join('trained_model', f"{self.model_params.model}_{Trainer.MODEL_NAME}")
         Model.save_weights(model_path)
 
+        print(f"[Trainer::train] Copying trained model to {self.output_dir}")
         io_operator.write('trained_model', self.output_dir)
+
+        print(f"[Trainer::train] Copying train logs to {self.output_dir}")
         io_operator.write('train_logs.csv', self.output_dir, use_system_cmd=False)
