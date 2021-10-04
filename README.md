@@ -96,11 +96,11 @@ python3 -m detectors.detector --predict --config='./config/config.yaml'
     3. A Hybrid model which consists of both CNN layers and LSTM cells.
 - CNN and Hybrid models were run for a batch size of 2048, for 5 epochs.
 - LSTM kept throwing out of memory error, so batch size had to be reduced to 1024.
-- CNN had the best loss/accuracy at 3rd epoch. Hybrid had the same for 2nd epoch.
-- Model performance report: (LSTM results will soon be updated)
+- CNN had the best loss/accuracy at 3rd epoch. Hybrid had the same at 2nd epoch. LSTM had it at 5th epoch.
+- Model performance report: (Testing is done on 5000 reviews)
 
     | Model  | Train Accuracy  | Validation Accuracy  | Test Accuracy  |
     |---|---|---|---|
     |CNN| 94.08% | 94.13% | 93.20%  | 
-    |LSTM|  |  |   | 
+    |LSTM| 95.23% | 94.92% | 94.32% | 
     |Hybrid| 94.99% | 95.01% | 94.28%  | 
