@@ -37,6 +37,7 @@ class CNNModel(Model):
         """
         print("[CNNModel::build] Building CNN model")
         model = Sequential()
+        model.add(layers.InputLayer(input_shape=(self.max_sequence_length,), name="input"))
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
@@ -72,6 +73,7 @@ class LSTMModel(Model):
         """
         print("[LSTMModel::build] Building LSTM model")
         model = Sequential()
+        model.add(layers.InputLayer(input_shape=(self.max_sequence_length,), name="input"))
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
@@ -103,6 +105,7 @@ class HybridModel(Model):
         """
         print("[HybridModel::build] Building Hybrid model")
         model = Sequential()
+        model.add(layers.InputLayer(input_shape=(self.max_sequence_length,), name="input"))
         model.add(layers.Embedding(input_dim=self.num_features,
                                    output_dim=model_params.embedding_dim,
                                    input_length=self.max_sequence_length))
