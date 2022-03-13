@@ -10,9 +10,9 @@ from argparse import Namespace
 from sklearn.metrics import confusion_matrix
 from tensorflow.keras.preprocessing import sequence
 
-from detectors.common import YamlConfig, SystemOps
-from detectors.tf_gcp.trainer.models.models import CNNModel, LSTMModel, HybridModel
-from detectors.tf_gcp.trainer.task import Trainer
+from detectors.tf_gcp.common import YamlConfig, SystemOps
+from detectors.tf_gcp.models.models import CNNModel, LSTMModel, HybridModel
+from detectors.vertex_ai_job import Trainer
 
 
 class Predictor(object):

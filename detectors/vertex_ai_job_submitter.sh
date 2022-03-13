@@ -1,3 +1,4 @@
+# Training tensorflow model using Google Cloud Vertex AI
 
 # Environment Variables
 export PROJECT='text-analysis-323506'
@@ -7,12 +8,15 @@ export MACHINE_TYPE='n1-highmem-4'
 export REPLICA_COUNT=1
 export EXECUTE_IMAGE_URI='us-docker.pkg.dev/vertex-ai/training/tf-gpu.2-8:latest'
 export LOCAL_PACKAGE_PATH='/home/jupyter/Sentiment-Analysis-of-Amazon-Reviews'
-export PYTHON_MODULE='detectors.tf_gcp.trainer.task'
+export PYTHON_MODULE='detectors.vertex_ai_job'
 export JOBNAME=sentiment_analysis_$(date -u +%y%m%d_%H%M%S)
 
 # gcloud configurations
 gcloud config set project $PROJECT
-gcloud config set compute/region $REGION
+gcloud config set compute/region $REGION                                                                
+
+# Move latest config file to google storage bucket
+gsutil -m cp -r ../config gs://$BUCKET
 
 # Submit training job  
 gcloud ai custom-jobs create \

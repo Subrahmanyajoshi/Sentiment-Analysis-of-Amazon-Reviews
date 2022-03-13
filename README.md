@@ -1,7 +1,7 @@
 
 ## Overview
 - The goal of this project is to provide a platform to build and train machine learning models for text
-classification using Google Cloud's AI platform.
+classification using Google Cloud's Vertex AI.
 - In this project I have used Amazon reviews dataset to extract sentiments from review texts.
 
 ## Dataset
@@ -21,7 +21,7 @@ AI platform notebooks to process them.
 
 - Install packages from requirements.txt
 ```shell
-pip install -r requirements.txt
+pip install -r requirements_baremetal.txt
 ```
 - Open config file at config/config.yaml and update it accordingly.
 - Make sure 'model_type' parameter under 'model_params' section is set to model under consideration.
@@ -37,17 +37,18 @@ python3 -m detectors.detector --train --config='./config/config.yaml'
 ```
 
 
-## Submitting Training job to AI Platform
+## Submitting Training job to Vertex AI
 
 - Go to google cloud console and create and open an instance of AI Notebooks. 
    If not known how to do that, follow the procedure given [here](https://cloud.google.com/notebooks/docs/create-new).
    (Create the notebook with low specifications, as we will not be running actual training here. 
-   This just acts as a base machine to submit the job to AI platform. 
+   This just acts as a base machine to submit the job to Vertex AI. 
    The best choice is n1-standard-2 machines which have 7.5 gb memory and 2 vCpus).
 - Open a terminal and clone this repository.
 ```shell
-git clone https://github.com/Subrahmanyajoshi/Breast-Cancer-Detection.git
+git clone https://github.com/Subrahmanyajoshi/Sentiment-Analysis-of-Amazon-Reviews.git
 ```
+- Navigate to project root.
 - Create a google storage bucket. If not known how to do that, 
    follow the procedure given [here](https://cloud.google.com/storage/docs/creating-buckets).
 - Create a folder inside newly created bucket named 'train_data'.
@@ -55,9 +56,13 @@ git clone https://github.com/Subrahmanyajoshi/Breast-Cancer-Detection.git
 - Upload train_val.zip into train_data folder inside bucket.
 - Open config file at config/config.yaml and update it accordingly. Make sure to mention full paths
    starting from 'gs://' while specifying paths inside the bucket.
-- Open the notebook detectors/tf_gcp/ai_platform_trainer.ipynb and run the notebook 
-   following the steps given there.
-- The notebook will submit the training job to AI Platform. 
+- Open the [detectors/vertex_ai_job_submitter](detectors/vertex_ai_job_submitter.sh) shell script.
+- Change the environment variables if required.
+- Run the shell script
+```shell
+./detectors/vertex_ai_job_submitter.sh
+```
+- The shell script will create a custom training job and submit it to Vertex AI. 
 
 ### Activating and using tensorboard to monitor training
 
