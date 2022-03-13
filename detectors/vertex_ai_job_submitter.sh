@@ -16,7 +16,7 @@ gcloud config set project $PROJECT
 gcloud config set compute/region $REGION                                                                
 
 # Move latest config file to google storage bucket
-gsutil -m cp -r ../config gs://$BUCKET
+gsutil -m cp -r ./config gs://$BUCKET
 
 # Submit training job  
 gcloud ai custom-jobs create \
