@@ -12,8 +12,11 @@ def main():
                         required=False)
     args = parser.parse_args()
 
+    # Copy config file from google cloud storage to current directory and load it.
     CloudIO.copy_from_gcs(args.train_config, './')
     config = YamlConfig.load(filepath=os.path.abspath('config.yaml'))
+
+    # Create trainer and start training
     trainer = Trainer(config=config)
     trainer.train()
 

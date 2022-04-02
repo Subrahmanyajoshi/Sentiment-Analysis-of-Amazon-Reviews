@@ -13,7 +13,6 @@ class DataGenerator(keras.utils.Sequence):
             input_text (np.array): numpy array of input texts
             labels (np.array): labels associated with filenames
             batch_size (int): batch size of model
-            bucket (Bucket): Gcs bucket name
         """
         self.input = input_text
         self.labels = labels

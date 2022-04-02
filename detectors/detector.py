@@ -1,6 +1,7 @@
 import argparse
 import os
 import pickle
+from typing import Dict
 
 import pandas as pd
 import numpy as np
@@ -17,7 +18,11 @@ from detectors.vertex_ai_job import Trainer
 
 class Predictor(object):
 
-    def __init__(self, config: dict):
+    def __init__(self, config: Dict):
+        """ Init method
+        Args:
+            config (Dict): A dictionary containing user configurations.
+        """
         self.config = config.get('predict_params', {})
         self.data_path = self.config.get('data_path')
         self.result_path = self.config.get('result_path')
@@ -29,6 +34,8 @@ class Predictor(object):
         self.model = self.load_model()
 
     def load_data(self):
+        """ loads test data from the specified directory
+        """
         if self.data_path.startswith('gs://'):
             print(f'[Predictor::load_data] Copying test data {self.data_path} to here...')
             SystemOps.run_command(f"gsutil -m cp -r {self.data_path} ./")
@@ -39,6 +46,8 @@ class Predictor(object):
         return test_data
         
     def load_tokenizer(self):
+        """ Loads tokenizer from the pickle file. This file is created during training
+        """
         if self.tokenizer_path.startswith('gs://'):
             print(f'[Predictor::load_tokenizer] Copying tokenizer {self.tokenizer_path} to here...')
             SystemOps.run_command(f"gsutil -m cp -r {self.tokenizer_path} ./")
@@ -49,12 +58,16 @@ class Predictor(object):
         return tokenizer_details
 
     def load_model(self):
+        """ Load the model saved during training
+        """
         if self.model_path.startswith('gs://'):
             print(f'[Predictor::load_model] Copying model {self.model_path} to here...')
             SystemOps.run_command(f"gsutil -m cp -r {self.model_path} ./")
             self.model_path = os.path.basename(self.model_path)
 
         num_features = min(len(self.tokenizer_details.tokenizer.word_index) + 1, self.tokenizer_details.top_k)
+
+        # Load the correct model based on user configurations
         if self.model_params.model == 'CNN':
             model = CNNModel(num_features=num_features,
                              max_sequence_length=self.tokenizer_details.max_sequence_length).build(self.model_params)
@@ -73,6 +86,10 @@ class Predictor(object):
         return model
 
     def predict(self, review: np.ndarray):
+        """ Takes one value and calculates it's prediction
+        Args:
+            review (np.ndarray): A review test in the form of sequence of integers
+        """
         result = self.model.predict(np.array([review]))
         result = result[0][0]
         if result > 0.5:
@@ -81,6 +98,8 @@ class Predictor(object):
             return 0
 
     def run(self):
+        """ Loads test data and model, and creates predictions
+        """
         lines = list(self.test_data['input'])
         true_labels = []
         predicted_labels = []
@@ -119,6 +138,8 @@ class Predictor(object):
                 print(f"{key}: {value}")
 
     def clean_up(self):
+        """Cleans up all directories created while running
+        """
         SystemOps.check_and_delete(self.data_path)
         SystemOps.check_and_delete(self.model_path)
         SystemOps.check_and_delete(self.tokenizer_path)

@@ -20,6 +20,8 @@ from detectors.tf_gcp.models.models import CNNModel, LSTMModel, HybridModel
 class TokenizerDetails(object):
 
     def __init__(self, **kwargs):
+        """ Init method
+        """
         self.tokenizer = kwargs.get('tokenizer', None)
         self.top_k = kwargs.get('top_k', 20000)
         self.max_sequence_length = kwargs.get('max_sequence_length', 500)
@@ -49,6 +51,8 @@ class Trainer(object):
                                        f"{self.model_params.model}_{datetime.now().strftime('%Y_%m_%d-%H:%M:%S')}")
 
         bucket_name = 'unk'
+
+        # Get bucket name
         if self.train_params.data_dir.startswith('gs://'):
             bucket_name = self.train_params.data_dir.split('gs://')[1].split('/')[0]
         elif self.train_params.output_dir.startswith('gs://'):
@@ -69,6 +73,9 @@ class Trainer(object):
         SystemOps.check_and_delete('config.yaml')
 
     def load_data(self):
+        """ Loads data from train_val.zip file
+        """
+
         print(f"[Trainer::load_data] Copying data from {self.train_params.data_dir} to here...")
         SystemOps.run_command(f"gsutil -m cp -r "
                               f"{os.path.join(self.train_params.data_dir, 'train_val.zip')} ./")
@@ -77,6 +84,9 @@ class Trainer(object):
         SystemOps.check_and_delete('train_val.zip')
 
     def preprocess(self) -> Tuple:
+        """ Converts strings to a sequence of integers using keras tokenizer.
+        """
+
         train_df = pd.read_csv('train_text.csv.gz')
         val_df = pd.read_csv('val_text.csv.gz')
         lines = list(train_df['input']) + list(val_df['input'])
@@ -105,12 +115,16 @@ class Trainer(object):
         return X_train, y_train, X_val, y_val
 
     def save_tokenizer(self):
+        """ Saves tokenizer object as a pickle file.
+        """
         tokenizer_pickle = TokenizerDetails(tokenizer=self.tokenizer, top_k=Trainer.TOP_K,
                                             max_sequence_length=Trainer.MAX_SEQUENCE_LENGTH)
         with open('parser_output/tokenizer.pickle', 'wb') as handle:
             pickle.dump(tokenizer_pickle, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def train(self):
+        """ Creates dataset, preprocesses it, builds model, trains is and saves it to the specified destination directory
+        """
         if self.bucket is not None:
             io_operator = CloudIO(bucket=self.bucket)
             self.load_data()
@@ -157,7 +171,7 @@ class Trainer(object):
                                              batch_size=self.train_params.batch_size)
 
         print("[Trainer::train] Started training")
-        history = Model.fit(
+        _ = Model.fit(
             train_generator,
             validation_data=validation_generator,
             epochs=self.train_params.num_epochs,
