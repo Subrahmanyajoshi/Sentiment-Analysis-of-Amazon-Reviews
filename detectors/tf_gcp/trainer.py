@@ -62,8 +62,8 @@ class Trainer(object):
 
     @staticmethod
     def clean_up():
-        """ Deletes temporary directories created while training"""
-
+        """ Deletes temporary directories created while training
+        """
         print(f"[Trainer::cleanup] Cleaning up...")
         SystemOps.run_command('rm *.csv.gz')
         SystemOps.check_and_delete('checkpoints')
@@ -75,7 +75,6 @@ class Trainer(object):
     def load_data(self):
         """ Loads data from train_val.zip file
         """
-
         print(f"[Trainer::load_data] Copying data from {self.train_params.data_dir} to here...")
         SystemOps.run_command(f"gsutil -m cp -r "
                               f"{os.path.join(self.train_params.data_dir, 'train_val.zip')} ./")
@@ -86,7 +85,6 @@ class Trainer(object):
     def preprocess(self) -> Tuple:
         """ Converts strings to a sequence of integers using keras tokenizer.
         """
-
         train_df = pd.read_csv('train_text.csv.gz')
         val_df = pd.read_csv('val_text.csv.gz')
         lines = list(train_df['input']) + list(val_df['input'])

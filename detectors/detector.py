@@ -58,7 +58,7 @@ class Predictor(object):
         return tokenizer_details
 
     def load_model(self):
-        """ Load the model saved during training
+        """ Loads the model saved during training
         """
         if self.model_path.startswith('gs://'):
             print(f'[Predictor::load_model] Copying model {self.model_path} to here...')
@@ -138,7 +138,7 @@ class Predictor(object):
                 print(f"{key}: {value}")
 
     def clean_up(self):
-        """Cleans up all directories created while running
+        """ Cleans up all temporarily created directories while running
         """
         SystemOps.check_and_delete(self.data_path)
         SystemOps.check_and_delete(self.model_path)
